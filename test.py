@@ -1,7 +1,12 @@
+from __future__ import division
+import matplotlib
+matplotlib.interactive(True)
+import time
 from pylab import *
 from numpy import *
 
-u = zeros(300, float32)
+u_all = []
+u = zeros(100, float32)
 u[0] = 1
 for steps in range(100000):
     dx = 0.5
@@ -13,8 +18,12 @@ for steps in range(100000):
     um = hstack([z, z, u])
     lapl = (up + um - 2*uu) / dx2
     lapl2 = (lapl[2:] + lapl[:-2] - 2*lapl[1:-1]) / dx2
-    u_dudx = u * (up[1:-1] - um[1:-1]) / (2*dx)
-    dudt = 3 * u_dudx - lapl[1:-1] - lapl2
-    u += dudt * dt
-    if steps % 1000 == 0:
-        plot(u)
+    u_dudx = (u - 0.5) * (up[1:-1] - um[1:-1]) / (2*dx)
+    dudt = u_dudx - lapl[1:-1] - lapl2
+    u += array(dudt * dt, float32)
+    # u_next = u + around(dudt * dt)
+    # u = array(maximum(minimum(u_next, 32760007), -30002767), float32)
+    if steps % 100 == 0:
+        u_all.append(u.copy())
+
+contourf(u_all, 100)

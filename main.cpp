@@ -3,7 +3,7 @@
 
 float timestep(float stencil[5])
 {
-    const float dx = 0.8;
+    const float dx = 0.5;
     const float dx2 = dx * dx;
     const float dt = dx2 * dx2 / 8;
     float lapl = (stencil[1] + stencil[3] - 2 * stencil[2]) / dx2;
@@ -15,41 +15,48 @@ float timestep(float stencil[5])
     return stencil[2] + dudt * dt;
 }
 
-int main()
+void val2color(float val[], int N)
 {
-    const int N = 300;
-    SeismicColorMap cm;
-    Color colors[N];
-    float val[N];
+    static SeismicColorMap cm;
+    Color colors[3*N];
     for (int i = 0; i < N; ++i)
     {
-        cm.float2rgb(0.0, colors[i]);
-        val[i] = 0.0;
+        float v0 = val[i];
+        float v1 = (2 * val[i] + val[i+1]) / 3;
+        float v2 = (val[i] + 2 * val[i+1]) / 3;
+        cm.float2rgb(v0, colors[i*3]);
+        cm.float2rgb(v1, colors[i*3+1]);
+        cm.float2rgb(v2, colors[i*3+2]);
     }
+    static int steps = 0;
+    steps ++;
+    if (steps % 100 == 0) {
+    for (int i = 0; i < 3*N; ++i)
+        std::cout << int(colors[i][0]) << " "
+                  << int(colors[i][1]) << " "
+                  << int(colors[i][2]) << " ";
+    std::cout << std::endl;
+    }
+}
 
-    float stencil[5] = {0.0, 0, 0, 1.0, 0.0};
-    for (int steps = 0; steps < 1000; ++steps)
+int main()
+{
+    const int N = 100;
+    float val[N+1];
+    memset(val, 0, sizeof(float) * (N+1));
+
+    float stencil[5] = {0, 0, 0, 1.0, 0.0};
+    for (int steps = 0; steps < 100000; ++steps)
     {
         stencil[1] = 0.0;
         stencil[2] = 0.0;
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i <= N; ++i)
         {
             memmove(stencil, stencil+1, sizeof(float) * 4);
-            if (i + 2 < N) {
-                stencil[4] = cm.rgb2float(colors[i + 2]);
-                //stencil[4] = val[i+2];
-            }
-            else {
-                stencil[4] = 0.0;
-            }
-            cm.float2rgb(timestep(stencil), colors[i]);
-            //val[i] = timestep(stencil);
-            //std::cout << cm.rgb2float(colors[i]) << ":";
+            stencil[4] = (i + 2 <= N) ? val[i+2] : 0.0;
+            val[i] = timestep(stencil);
         }
-        //std::cout << std::endl;
+        val2color(val, N);
     }
-    for (int i = 0; i < N; ++i)
-        std::cout << cm.rgb2float(colors[i]) << " ";
-    std::cout << std::endl;
     return 0;
 }
