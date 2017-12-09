@@ -5,11 +5,11 @@
 
 typedef uint8_t Color[3];
 
+template<unsigned int _n_seg>
 class ColorMap
 {
     protected:
-        int _n_seg;
-        Color * _color;
+        Color _color[_n_seg+1];
 
         void _define_segment(int i_seg,
                              uint32_t r, uint32_t g, uint32_t b)
@@ -20,16 +20,6 @@ class ColorMap
         }
 
     public:
-        ColorMap(int n) : _n_seg(n)
-        {
-            _color = new Color[n+1];
-        }
-
-        ~ColorMap()
-        {
-            delete _color;
-        }
-
         void float2rgb(float v, Color color)
         {
             if (v > 1) v = 1;
@@ -50,10 +40,10 @@ class ColorMap
         }
 };
 
-class SeismicColorMap : public ColorMap
+class SeismicColorMap : public ColorMap<11>
 {
     public:
-    SeismicColorMap() : ColorMap(11)
+    SeismicColorMap()
     {
         _define_segment(0,  255, 255, 240);
         _define_segment(1,  255, 250, 100);
