@@ -6,12 +6,12 @@ from pylab import *
 from numpy import *
 
 u_all = []
-u = zeros(100, float32)
-u[0] = 1
+u = zeros(50, float32)
+u[::10] = 1
 for steps in range(100000):
-    dx = 0.5
+    dx = 0.8
     dx2 = dx**2
-    dt = dx2**2 / 16
+    dt = dx2**2 / 8
     z = zeros(1,float32)
     uu = hstack([z, u, z])
     up = hstack([u, z, z])
@@ -23,7 +23,7 @@ for steps in range(100000):
     u += array(dudt * dt, float32)
     # u_next = u + around(dudt * dt)
     # u = array(maximum(minimum(u_next, 32760007), -30002767), float32)
-    if steps % 100 == 0:
+    if steps % 10 == 0:
         u_all.append(u.copy())
 
 contourf(u_all, 100)
